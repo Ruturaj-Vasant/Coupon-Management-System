@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYU Digital Pass</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            background-color: #f7f7f7;
+            color: #333;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(87, 6, 140, 0.12);
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .nyu-logo {
+            width: 120px;
+            margin-bottom: 24px;
+        }
+        .title {
+            color: #57068c;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            border-color: #57068c;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(87, 6, 140, 0.1);
+        }
+        .submit-btn {
+            background-color: #57068c;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 24px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        .submit-btn:hover {
+            background-color: #450570;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(87, 6, 140, 0.2);
+        }
+        .submit-btn:active {
+            transform: translateY(1px);
+        }
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error {
+            background-color: #ffebee;
+            border-left: 4px solid #d32f2f;
+            color: #d32f2f;
+            padding: 12px;
+            margin-top: 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(87, 6, 140, 0.1);
+            z-index: 1000;
+        }
+
+        .loading-spinner::after {
+            content: '';
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #57068c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: #57068c;
+            font-size: 18px;
+            margin-top: 16px;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .pass-redirect-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(87, 6, 140, 0.1);
+            z-index: 2000;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <!-- <img src="https://www.nyu.edu/content/nyu/en/footer-jcr-content/identity/nyu-logo.svg" alt="NYU Logo" class="nyu-logo"> -->
+            <h1 class="title">Get Your Digital Pass</h1>
+            <p class="subtitle">Please provide your details to receive your pass.</p>
+        </div>
+        <form id="userForm" onsubmit="submitForm(event)">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" required>
+            </div>
+            <button type="submit" class="submit-btn">Get Your Pass</button>
+        </form>
+        <div id="error" class="error"></div>
+    </div>
+
+    
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="loading-text">Generating your pass...</div>
+    </div>
+
+    <script>
+        function submitForm(e) {
+              e.preventDefault();
+              
+              
+              const submitButton = document.querySelector('.submit-btn');
+              submitButton.disabled = true;
+              submitButton.style.opacity = '0.6';
+              submitButton.style.cursor = 'not-allowed';
+              
+              
+              document.getElementById('loadingSpinner').style.display = 'block';
+              
+              const userData = {
+                  name: document.getElementById('name').value,
+                  email: document.getElementById('email').value,
+                  phone: document.getElementById('phone').value,
+                  couponId: '<?= id ?>'
+              };
+
+              google.script.run
+                .withSuccessHandler(function(response) {
+                    if (response && response.success) {
+                        
+                        document.getElementById('loadingSpinner').style.display = 'none';
+                        
+                        
+                        const container = document.querySelector('.container');
+                        container.innerHTML = `
+                            <div class="header">
+                                <h1 class="title">Pass Generated Successfully!</h1>
+                                <p class="subtitle">Your pass has been sent to your email.</p>
+                                <p style="margin-top: 16px;">Redirecting to your pass...</p>
+                                <div id="fallbackButton" style="display: none;">
+                                    <p style="margin: 16px 0; color: #666;">
+                                        If you're not automatically redirected,<br>please click the button below:
+                                    </p>
+                                    <a href="${response.passUrl}" class="submit-btn" style="display: block; text-decoration: none;">
+                                        Open Your Pass
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+
+                        // Attempt automatic redirect
+                        try {
+                            setTimeout(function() {
+                                window.location.href = response.passUrl;
+                            }, 1500);
+
+                            // Show fallback button after 10 seconds
+                            setTimeout(function() {
+                                const fallbackButton = document.getElementById('fallbackButton');
+                                if (fallbackButton) {
+                                    fallbackButton.style.display = 'block';
+                                }
+                            }, 10000);
+                        } catch (error) {
+                            // If redirect fails, show fallback button immediately
+                            const fallbackButton = document.getElementById('fallbackButton');
+                            if (fallbackButton) {
+                                fallbackButton.style.display = 'block';
+                            }
+                        }
+                    } else {
+                       
+                        document.getElementById('loadingSpinner').style.display = 'none';
+                        const errorDiv = document.getElementById('error');
+                        errorDiv.style.display = 'block';
+                        errorDiv.textContent = response.message || 'Failed to generate pass';
+                    }
+                })
+                  .withFailureHandler(function(error) {
+                      
+                      submitButton.disabled = false;
+                      submitButton.style.opacity = '1';
+                      submitButton.style.cursor = 'pointer';
+                      
+                      document.getElementById('loadingSpinner').style.display = 'none';
+                      const errorDiv = document.getElementById('error');
+                      errorDiv.style.display = 'block';
+                      errorDiv.textContent = 'Error: ' + error.message;
+                  })
+                  .processUserDataAndCreateCoupon(userData);
+          }
+    </script>
+</body>
+</html>
