@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NYU Coupon Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Calibri, sans-serif; 
+            background-color: #f9f9f9; 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 15px; 
+        }
+        .form-container { 
+            width: 100%; 
+            max-width: 450px; 
+            background-color: #fff; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0px 4px 12px rgba(87, 6, 140, 0.1); 
+            border-top: 4px solid #57068c; 
+        }
+        h1 { 
+            font-size: 24px; 
+            margin-bottom: 25px; 
+            color: #57068c; 
+            text-align: center; 
+        }
+        .form-group { margin-bottom: 20px; }
+        label { 
+            display: block; 
+            font-size: 16px; 
+            color: #000; 
+            margin-bottom: 8px; 
+            font-weight: 500; 
+            text-align: left; 
+        }
+        input, select { 
+            width: 100%; 
+            height: 48px; 
+            padding: 12px; 
+            border: 1.5px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            color: #333; 
+            background-color: #fff; 
+            -webkit-appearance: none; 
+            appearance: none; 
+            transition: border-color 0.3s ease; 
+        }
+        input:focus, select:focus { 
+            outline: none; 
+            border-color: #57068c; 
+            box-shadow: 0 0 0 2px rgba(87, 6, 140, 0.1); 
+        }
+        input[type="date"] { 
+            font-family: Calibri, sans-serif; 
+            text-transform: uppercase; 
+        }
+        select { 
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2357068c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); 
+            background-repeat: no-repeat; 
+            background-position: right 12px center; 
+            background-size: 16px; 
+            padding-right: 40px; 
+        }
+        .generate-btn { 
+            width: 100%; 
+            height: 48px; 
+            background-color: #57068c; 
+            color: #fff; 
+            font-size: 18px; 
+            font-weight: 500; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            margin-top: 10px; 
+        }
+        .generate-btn:hover { 
+            background-color: #450570; 
+            transform: translateY(-1px); 
+        }
+        .generate-btn:active { 
+            transform: translateY(1px); 
+        }
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .footer-text { 
+            font-size: 14px; 
+            color: #666; 
+            margin-top: 20px; 
+            text-align: center; 
+        }
+        #messageDiv { 
+            margin-top: 20px; 
+            padding: 12px; 
+            border-radius: 8px; 
+            text-align: center; 
+            font-size: 16px; 
+            display: none; 
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(87, 6, 140, 0.1);
+            z-index: 1000;
+        }
+        .loading-spinner::after {
+            content: '';
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #57068c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .loading-text {
+            color: #57068c;
+            font-size: 18px;
+            margin-top: 16px;
+            font-weight: 500;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .success-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(87, 6, 140, 0.1);
+            padding: 32px;
+            text-align: center;
+        }
+        .success-header {
+            margin-bottom: 24px;
+        }
+        .success-header h2 {
+            color: #57068c;
+            font-size: 24px;
+            margin: 16px 0;
+        }
+        .qr-wrapper {
+            background: #f8f9fa;
+            padding: 24px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        .qr-code {
+            max-width: 200px;
+            height: auto;
+        }
+        .coupon-info {
+            margin-top: 16px;
+        }
+        .coupon-label {
+            color: #666;
+            font-size: 16px;
+        }
+        @media screen and (max-width: 480px) {
+            .form-container { padding: 15px; }
+            h1 { font-size: 22px; margin-bottom: 20px; }
+            label { font-size: 15px; }
+            input, select { font-size: 15px; height: 44px; }
+            .generate-btn { height: 44px; font-size: 16px; }
+            .footer-text { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>NYU Coupon Generator</h1>
+        <form id="couponForm">
+            <div class="form-group">
+                <label for="expirationDate">Expiration Date:</label>
+                <input type="date" id="expirationDate" required>
+            </div>
+            <div class="form-group">
+                <label for="serviceType">Service Type:</label>
+                <select id="serviceType" required>
+                    <option value="" disabled selected>Select a service</option>
+                    <option value="cafeteria">Cafeteria Discount</option>
+                    <option value="printing">Printing Credits</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="discountAmount">Discount Amount ($):</label>
+                <input type="number" id="discountAmount" placeholder="Enter discount amount" min="0.01" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="numberOfUses">Number of Uses:</label>
+                <select id="numberOfUses" required>
+                    <option value="" disabled selected>Select number of uses</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="unlimited">Unlimited</option>
+                </select>
+            </div>
+            <button type="submit" class="generate-btn">Generate QR</button>
+        </form>
+        <div id="messageDiv"></div>
+        <p class="footer-text">All coupons are subject to NYU terms and conditions.</p>
+    </div>
+
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="loading-text">Generating QR Code...</div>
+    </div>
+
+    <script>
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('expirationDate').setAttribute('min', today);
+
+        document.getElementById('couponForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate form
+            const selectedDate = new Date(document.getElementById('expirationDate').value);
+            const today = new Date();
+            if (selectedDate < today) {
+                showError('Expiration date must be in the future');
+                return;
+            }
+
+            const serviceType = document.getElementById('serviceType').value;
+            if (!serviceType) {
+                showError('Please select a service type');
+                return;
+            }
+
+            const discountAmount = parseFloat(document.getElementById('discountAmount').value);
+            if (isNaN(discountAmount) || discountAmount <= 0) {
+                showError('Please enter a valid discount amount');
+                return;
+            }
+
+            const usesAllowed = document.getElementById('numberOfUses').value;
+            if (!usesAllowed) {
+                showError('Please select number of uses');
+                return;
+            }
+
+            // Disable submit button
+            const generateButton = document.querySelector('.generate-btn');
+            generateButton.disabled = true;
+            
+            document.getElementById('loadingSpinner').style.display = 'block';
+            
+            const formData = {
+                expirationDate: document.getElementById('expirationDate').value,
+                serviceType: serviceType,
+                discountAmount: discountAmount,
+                usesAllowed: usesAllowed,
+            };
+
+            google.script.run
+                .withSuccessHandler(function(response) {
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    const messageDiv = document.getElementById('messageDiv');
+                    messageDiv.style.display = 'block';
+                    
+                    if (response && response.success) {
+                        document.getElementById('couponForm').reset();
+                        // Re-enable the button
+                        const generateButton = document.querySelector('.generate-btn');
+                        generateButton.disabled = false;
+                        generateButton.style.opacity = '1';
+                        generateButton.style.cursor = 'pointer';
+                        
+                        messageDiv.innerHTML = `
+                            <div class="success-container">
+                                <div class="success-header">
+                                    <h2>QR Generated Successfully!</h2>
+                                </div>
+                                <div class="qr-wrapper">
+                                    <img src="${response.qrCodeUrl}" alt="QR Code" class="qr-code">
+                                </div>
+                                <div class="coupon-info">
+                                    <span class="coupon-label">Scan QR code to generate your coupon</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        messageDiv.style.backgroundColor = '#ffebee';
+                        messageDiv.style.color = '#c62828';
+                        messageDiv.textContent = response.message || 'Failed to generate coupon';
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    generateButton.disabled = false;
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    const messageDiv = document.getElementById('messageDiv');
+                    messageDiv.style.display = 'block';
+                    messageDiv.style.backgroundColor = '#ffebee';
+                    messageDiv.style.color = '#c62828';
+                    messageDiv.textContent = 'Error: ' + error.message;
+                })
+                .updateSheet(formData);
+        });
+
+        function showError(message) {
+            const messageDiv = document.getElementById('messageDiv');
+            messageDiv.style.display = 'block';
+            messageDiv.style.backgroundColor = '#ffebee';
+            messageDiv.style.color = '#c62828';
+            messageDiv.textContent = message;
+        }
+    </script>
+</body>
+</html>
